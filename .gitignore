@@ -1,0 +1,7 @@
+#executable
+
+*.exe
+
+#vs-code
+
+.vscode

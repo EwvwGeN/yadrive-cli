@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"bufio"
 	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
@@ -80,23 +81,49 @@ func initConfig() {
 		cfgFile = home + string(os.PathSeparator) + ".yadrive-cli"
 	}
 	data, err := os.ReadFile(cfgFile)
-	if errors.Is(err, os.ErrNotExist) {
-		return
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return
+		}
+		AskUserToContinue(err.Error(), os.Stdin, os.Stdout)
 	}
-	cobra.CheckErr(err)
 	block, err := aes.NewCipher([]byte(util.GetMD5Hash(userSecret)))
-	cobra.CheckErr(err)
+	if err != nil {
+		AskUserToContinue(err.Error(), os.Stdin, os.Stdout)
+	}
 	gcmInstance, err := cipher.NewGCM(block)
-	cobra.CheckErr(err)
+	if err != nil {
+		AskUserToContinue(err.Error(), os.Stdin, os.Stdout)
+	}
 	nonceSize := gcmInstance.NonceSize()
 	nonce, cipheredText := data[:nonceSize], data[nonceSize:]
 	plainText, err := gcmInstance.Open(nil, nonce, cipheredText, nil)
-	cobra.CheckErr(err)
+	if err != nil {
+		AskUserToContinue(err.Error(), os.Stdin, os.Stdout)
+	}
 	reader := bytes.NewReader(plainText)
 	viper.AutomaticEnv()
 	viper.SetConfigType("yaml")
 	if err := viper.ReadConfig(reader); err != nil {
-		rootCmd.OutOrStderr().Write([]byte("Cant read config file"))
+		AskUserToContinue("Cant read config file", os.Stdin, os.Stdout)
 	}
 }
 
+func AskUserToContinue(errMsg string, input io.Reader, output io.Writer) {
+	_, err := output.Write([]byte("Cause an error: " + errMsg +"\n"))
+	if err != nil {
+		os.Exit(1)
+	}
+	_, err = output.Write([]byte("Do you want to continue [yes/no]: "))
+	if err != nil {
+		os.Exit(1)
+	}
+	reader := bufio.NewReader(input)
+	ans, err := reader.ReadString('\n')
+	if err != nil {
+		os.Exit(1)
+	}
+	if len(ans) == 0 && ans[0] != 'y' {
+		os.Exit(1)
+	}
+}
