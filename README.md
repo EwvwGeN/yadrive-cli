@@ -1,3 +1,3 @@
 # CLI application for access to yandex disk
 
-Now in development
+Now in development check the dev branch
