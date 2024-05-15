@@ -1,9 +1,9 @@
 package disk
 
 import (
-	"fmt"
 	"io"
 
+	"github.com/EwvwGeN/yadrive-cli/internal/templates"
 	v1 "github.com/EwvwGeN/yadrive-cli/pkg/yandex-api/v1"
 )
 
@@ -12,6 +12,13 @@ func GetDiskInfo(writer io.Writer, oauthToken string) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("%+v", resp)
+	tmlpInfo, err := templates.GetDiskInfoTmpl(resp)
+	if err != nil {
+		return err
+	}
+	_, err = writer.Write(tmlpInfo)
+	if err != nil {
+		return err
+	}
 	return nil
 }
