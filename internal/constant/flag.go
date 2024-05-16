@@ -5,6 +5,7 @@ const (
 	SecretFlag            = "secret"
 	OauthFlag             = "oauth"
 	PathFlag              = "path"
+	PathToFlag            = "path-to"
 	ResourceNameFlag      = "name"
 	ResourceOverwriteFlag = "overwrite"
 	LimitFlag             = "limit"
