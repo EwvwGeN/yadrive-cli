@@ -16,12 +16,19 @@ import (
 func init() {
 	rootCmd.AddCommand(resourceCmd)
 	resourceCmd.AddCommand(resourceDownloadCmd)
+	resourceCmd.AddCommand(resourceUploadCmd)
 	resourceCmd.PersistentFlags().String(constant.OauthFlag, "", "direct pass of the oauth token (by default will be get from config)")
 	resourceCmd.PersistentFlags().String(constant.PathFlag, "", "path to the resource in the disk")
 	viper.BindPFlag(constant.OauthFlag, resourceCmd.Flag(constant.OauthFlag))
 
 	resourceDownloadCmd.Flags().String(constant.PathToFlag, "./", "destination path")
 	resourceDownloadCmd.MarkFlagRequired(constant.PathFlag)
+
+	resourceUploadCmd.Flags().String(constant.PathToFlag, "disk:/", "destination path")
+	resourceUploadCmd.Flags().String(constant.UrlFlag, "", "link to the file source when uploading a file to disk from the Internet")
+	resourceUploadCmd.Flags().Bool(constant.OverwriteFlag, false, "overwrite file if exist")
+	resourceUploadCmd.Flags().Bool(constant.RedirectFlag, false, "allow redirect when uploading file by link")
+	resourceUploadCmd.MarkFlagRequired(constant.PathFlag)
 }
 
 var resourceCmd = &cobra.Command{
@@ -78,4 +85,47 @@ var resourceDownloadCmd = &cobra.Command{
 		cobra.CheckErr(err)
 	},
 	
+}
+
+var resourceUploadCmd = &cobra.Command{
+	Use:   "upload",
+	Short: "upload resource by path",
+	Long: `upload resource by path`,
+	Run: func(cmd *cobra.Command, args []string) {
+		oauthToken, ok := cmd.Context().Value(util.ContextKey(constant.OauthFlag)).(string)
+		if !ok {
+			cmd.ErrOrStderr().Write([]byte("Something went wrong"))
+			os.Exit(1)
+		}
+		path, ok := cmd.Context().Value(util.ContextKey(constant.PathFlag)).(*string)
+		if !ok {
+			cmd.ErrOrStderr().Write([]byte("Something went wrong"))
+			os.Exit(1)
+		}
+		var err error
+		if cmd.Flag(constant.UrlFlag).Changed {
+			url := cmd.Flag(constant.UrlFlag).Value.String()
+			if url == "" {
+				cmd.OutOrStderr().Write([]byte("url len is not valid"))
+				os.Exit(1)
+			}
+			var redirect *string
+			if cmd.Flag(constant.RedirectFlag).Changed {
+				parsedRedirect:= cmd.Flag(constant.RedirectFlag).Value.String()
+				redirect = &parsedRedirect
+			}
+			err = resource.UploadFileByLink(cmd.OutOrStdout(), oauthToken, url, *path, redirect)
+
+		} else {
+			// should i check if is valid?
+			pathTo := cmd.Flag(constant.PathToFlag).Value.String()
+			var overwrite *string
+			if cmd.Flag(constant.OverwriteFlag).Changed {
+				parsedOverwrite:= cmd.Flag(constant.OverwriteFlag).Value.String()
+				overwrite = &parsedOverwrite
+			}
+			err = resource.UploadFileByPath(cmd.OutOrStdout(), oauthToken, *path, pathTo, overwrite)
+		}
+		cobra.CheckErr(err)
+	},
 }
