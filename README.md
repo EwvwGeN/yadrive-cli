@@ -11,7 +11,7 @@ SLI application for using yandex disk
 ## Installation
 
 You can simply intstall the application by command:</br>
-`go install github.com/EwvwGeN/yadrive-cli@latest --ldflags="-X github.com/EwvwGeN/yadrive-cli/cmd.userSecret=<your_own_secret>"`
+`go install --ldflags="-X github.com/EwvwGeN/yadrive-cli/cmd.userSecret=<your_own_secret>" github.com/EwvwGeN/yadrive-cli@latest`
 
 In command you need to pass your secret, that will be used for encripting/decripting file, which store confidential info.
 
