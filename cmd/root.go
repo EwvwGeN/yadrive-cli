@@ -16,7 +16,7 @@ import (
 )
 
 var (
-	userSecret string = "change by building"
+	userSecret string = "c123"
 	cfgFile string
  	saveToFile bool
 )
@@ -123,7 +123,7 @@ func AskUserToContinue(errMsg string, input io.Reader, output io.Writer) {
 	if err != nil {
 		os.Exit(1)
 	}
-	if len(ans) == 0 && ans[0] != 'y' {
+	if len(ans) == 0 || ans[0] != 'y' {
 		os.Exit(1)
 	}
 }
