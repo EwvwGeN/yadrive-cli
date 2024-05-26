@@ -1,6 +1,6 @@
 # CLI application for access to yandex disk
 
-SLI application for using yandex disk
+СLI application for using yandex disk
 
 # Table of Contents
 - [Installation](#Installation)
